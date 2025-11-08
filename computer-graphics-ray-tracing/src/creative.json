@@ -1,0 +1,165 @@
+{
+  "camera": {
+    "type": "perspective",
+    "focal_length": 3,
+    "eye": [0, 3, 25],
+    "up": [0, 1, 0],
+    "look": [0, -0.1, -1],
+    "height": 1,
+    "width": 1.7777777778
+  },
+  "lights": [
+    {
+      "type": "point",
+      "position": [0, 5, 8],
+      "color": [0.8, 0.8, 0.8]
+    },
+    {
+      "type": "directional",
+      "direction": [-1, -1, -1],
+      "color": [0.3, 0.3, 0.3]
+    }
+  ],
+  "materials": [
+    {
+      "name": "minecraft-wood",
+      "ka": [0.2, 0.1, 0.0], "kd": [0.4, 0.2, 0.1], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+      "name": "minecraft-leaves",
+      "ka": [0.1, 0.4, 0.1], "kd": [0.2, 0.6, 0.2], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+      "name": "crafting-table-top",
+      "ka": [0.3, 0.2, 0.1], "kd": [0.6, 0.4, 0.2], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "crafting-table-side",
+        "ka": [0.4, 0.3, 0.1], "kd": [0.7, 0.5, 0.2], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "crafting-table-details",
+        "ka": [0.1, 0.05, 0.0], "kd": [0.2, 0.1, 0.05], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "furnace-cobblestone",
+        "ka": [0.2, 0.2, 0.2], "kd": [0.4, 0.4, 0.4], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "furnace-top",
+        "ka": [0.3, 0.3, 0.3], "kd": [0.5, 0.5, 0.5], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "furnace-opening",
+        "ka": [0.0, 0.0, 0.0], "kd": [0.1, 0.1, 0.1], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 100
+    },
+    {
+        "name": "minecraft-bed-red",
+        "ka": [0.5, 0.1, 0.1], "kd": [0.8, 0.2, 0.2], "ks": [0.1, 0.1, 0.1], "km": [0.0, 0.0, 0.0], "phong_exponent": 10
+    },
+    {
+        "name": "minecraft-bed-white",
+        "ka": [0.8, 0.8, 0.8], "kd": [0.9, 0.9, 0.9], "ks": [0.2, 0.2, 0.2], "km": [0.1, 0.1, 0.1], "phong_exponent": 30
+    },
+    {
+      "name": "ground-gray",
+      "ka": [0.2, 0.2, 0.2], "kd": [0.6, 0.6, 0.6], "ks": [0.1, 0.1, 0.1], "km": [0.1, 0.1, 0.1], "phong_exponent": 20
+    }
+  ],
+  "objects": [
+    {
+      "type": "plane",
+      "material": "ground-gray",
+      "point": [0, -1, 0],
+      "normal": [0, 1, 0]
+    },
+
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, 0.5], [3.5, -1, 0.5], [3.5, 2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, 0.5], [3.5, 2, 0.5], [2.5, 2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [3.5, -1, -0.5], [2.5, -1, -0.5], [2.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [3.5, -1, -0.5], [2.5, 2, -0.5], [3.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [3.5, -1, 0.5], [3.5, -1, -0.5], [3.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [3.5, -1, 0.5], [3.5, 2, -0.5], [3.5, 2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, -0.5], [2.5, -1, 0.5], [2.5, 2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, -0.5], [2.5, 2, 0.5], [2.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, 2, 0.5], [3.5, 2, 0.5], [3.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, 2, 0.5], [3.5, 2, -0.5], [2.5, 2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, -0.5], [3.5, -1, -0.5], [3.5, -1, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-wood", "corners": [ [2.5, -1, -0.5], [3.5, -1, 0.5], [2.5, -1, 0.5] ] },
+
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, 1.5], [4.5, 2, 1.5], [4.5, 4, 1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, 1.5], [4.5, 4, 1.5], [1.5, 4, 1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [4.5, 2, -1.5], [1.5, 2, -1.5], [1.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [4.5, 2, -1.5], [1.5, 4, -1.5], [4.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [4.5, 2, 1.5], [4.5, 2, -1.5], [4.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [4.5, 2, 1.5], [4.5, 4, -1.5], [4.5, 4, 1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, -1.5], [1.5, 2, 1.5], [1.5, 4, 1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, -1.5], [1.5, 4, 1.5], [1.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 4, 1.5], [4.5, 4, 1.5], [4.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 4, 1.5], [4.5, 4, -1.5], [1.5, 4, -1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, -1.5], [4.5, 2, -1.5], [4.5, 2, 1.5] ] },
+    { "type": "triangle", "material": "minecraft-leaves", "corners": [ [1.5, 2, -1.5], [4.5, 2, 1.5], [1.5, 2, 1.5] ] },
+    
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, 0.5], [0.5, -1, 0.5], [0.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, 0.5], [0.5, 0, 0.5], [-0.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [0.5, -1, -0.5], [-0.5, -1, -0.5], [-0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [0.5, -1, -0.5], [-0.5, 0, -0.5], [0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [0.5, -1, 0.5], [0.5, -1, -0.5], [0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [0.5, -1, 0.5], [0.5, 0, -0.5], [0.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, -0.5], [-0.5, -1, 0.5], [-0.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, -0.5], [-0.5, 0, 0.5], [-0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-top", "corners": [ [-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-top", "corners": [ [-0.5, 0, 0.5], [0.5, 0, -0.5], [-0.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, -0.5], [0.5, -1, -0.5], [0.5, -1, 0.5] ] },
+    { "type": "triangle", "material": "crafting-table-side", "corners": [ [-0.5, -1, -0.5], [0.5, -1, 0.5], [-0.5, -1, 0.5] ] },
+
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [-0.2, -0.8, 0.51], [0.2, -0.8, 0.51], [0.2, -0.6, 0.51] ] },
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [-0.2, -0.8, 0.51], [0.2, -0.6, 0.51], [-0.2, -0.6, 0.51] ] },
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [-0.2, -0.5, 0.51], [0.2, -0.5, 0.51], [0.2, -0.1, 0.51] ] },
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [-0.2, -0.5, 0.51], [0.2, -0.1, 0.51], [-0.2, -0.1, 0.51] ] },
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [0.51, -0.7, -0.3], [0.51, -0.7, 0.3], [0.51, -0.5, 0.3] ] },
+    { "type": "triangle", "material": "crafting-table-details", "corners": [ [0.51, -0.7, -0.3], [0.51, -0.5, 0.3], [0.51, -0.5, -0.3] ] },
+
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, 0.5], [-2.5, -1, 0.5], [-2.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, 0.5], [-2.5, 0, 0.5], [-3.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-2.5, -1, -0.5], [-3.5, -1, -0.5], [-3.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-2.5, -1, -0.5], [-3.5, 0, -0.5], [-2.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-2.5, -1, 0.5], [-2.5, -1, -0.5], [-2.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-2.5, -1, 0.5], [-2.5, 0, -0.5], [-2.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, -0.5], [-3.5, -1, 0.5], [-3.5, 0, 0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, -0.5], [-3.5, 0, 0.5], [-3.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-top", "corners": [ [-3.5, 0, 0.5], [-2.5, 0, 0.5], [-2.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-top", "corners": [ [-3.5, 0, 0.5], [-2.5, 0, -0.5], [-3.5, 0, -0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, -0.5], [-2.5, -1, -0.5], [-2.5, -1, 0.5] ] },
+    { "type": "triangle", "material": "furnace-cobblestone", "corners": [ [-3.5, -1, -0.5], [-2.5, -1, 0.5], [-3.5, -1, 0.5] ] },
+    
+    { "type": "triangle", "material": "furnace-opening", "corners": [ [-3.25, -0.75, 0.51], [-2.75, -0.75, 0.51], [-2.75, -0.25, 0.51] ] },
+    { "type": "triangle", "material": "furnace-opening", "corners": [ [-3.25, -0.75, 0.51], [-2.75, -0.25, 0.51], [-3.25, -0.25, 0.51] ] },
+
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, 0.5], [-4, -1, 0.5], [-4, -0.5, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, 0.5], [-4, -0.5, 0.5], [-6, -0.5, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-4, -1, -0.5], [-6, -1, -0.5], [-6, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-4, -1, -0.5], [-6, -0.5, -0.5], [-4, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-4, -1, 0.5], [-4, -1, -0.5], [-4, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-4, -1, 0.5], [-4, -0.5, -0.5], [-4, -0.5, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, -0.5], [-6, -1, 0.5], [-6, -0.5, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, -0.5], [-6, -0.5, 0.5], [-6, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -0.5, 0.5], [-4, -0.5, 0.5], [-4, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -0.5, 0.5], [-4, -0.5, -0.5], [-6, -0.5, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, -0.5], [-4, -1, -0.5], [-4, -1, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-red", "corners": [ [-6, -1, -0.5], [-4, -1, 0.5], [-6, -1, 0.5] ] },
+
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, 0.5], [-5.5, -0.5, 0.5], [-5.5, -0.2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, 0.5], [-5.5, -0.2, 0.5], [-6, -0.2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-5.5, -0.5, -0.5], [-6, -0.5, -0.5], [-6, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-5.5, -0.5, -0.5], [-6, -0.2, -0.5], [-5.5, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-5.5, -0.5, 0.5], [-5.5, -0.5, -0.5], [-5.5, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-5.5, -0.5, 0.5], [-5.5, -0.2, -0.5], [-5.5, -0.2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, -0.5], [-6, -0.5, 0.5], [-6, -0.2, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, -0.5], [-6, -0.2, 0.5], [-6, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.2, 0.5], [-5.5, -0.2, 0.5], [-5.5, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.2, 0.5], [-5.5, -0.2, -0.5], [-6, -0.2, -0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, -0.5], [-5.5, -0.5, -0.5], [-5.5, -0.5, 0.5] ] },
+    { "type": "triangle", "material": "minecraft-bed-white", "corners": [ [-6, -0.5, -0.5], [-5.5, -0.5, 0.5], [-6, -0.5, 0.5] ] }
+  ]
+}

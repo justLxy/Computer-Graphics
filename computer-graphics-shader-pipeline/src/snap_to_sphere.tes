@@ -1,0 +1,45 @@
+// Hint: Crib from your model_view_projection.vs
+// Layout:
+//                                         Indicate that we're dealing with
+//                                         triangles in CCW order and using a
+//                                         sane spacing.
+layout(triangles, equal_spacing, ccw) in;
+// Uniforms
+uniform mat4 view;
+uniform mat4 proj;
+uniform float animation_seconds;
+uniform bool is_moon;
+// Inputs:
+//                    array of 3 3D patch corner positions
+in vec4 pos_es_in[];
+// Outputs:
+//                   projected, view, and model transformed 3D position
+out vec4 pos_fs_in;
+//                        view and model transformed 3D position
+out vec4 view_pos_fs_in;
+//                      view and model transformed 3D normal
+out vec3 normal_fs_in;
+//                      3D position _before_ applying model, view or projection
+//                      transformations (e.g., point on unit sphere)
+out vec3 sphere_fs_in;
+// expects: interpolat, model, 
+void main()
+{
+  /////////////////////////////////////////////////////////////////////////////
+  // Interpolate position, snap to unit sphere, then apply MVP transform.
+  vec4 pos = interpolate(gl_TessCoord, pos_es_in[0], pos_es_in[1], pos_es_in[2]);
+  
+  vec3 sphere_pos = normalize(pos.xyz);
+  sphere_fs_in = sphere_pos;
+  
+  // Apply model, view, and projection transformations
+  mat4 m = model(is_moon, animation_seconds);
+  vec4 world_pos = m * vec4(sphere_pos, 1.0);
+  view_pos_fs_in = view * world_pos;
+  normal_fs_in = normalize((transpose(inverse(view * m)) * vec4(sphere_pos, 0.0)).xyz);
+  pos_fs_in = proj * view_pos_fs_in;
+  gl_Position = pos_fs_in;
+  /////////////////////////////////////////////////////////////////////////////
+}
+
+

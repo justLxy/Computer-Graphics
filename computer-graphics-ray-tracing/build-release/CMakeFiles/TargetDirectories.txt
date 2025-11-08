@@ -1,0 +1,4 @@
+/Users/lvxuanyi/Desktop/CSC317/computer-graphics-ray-tracing/build-release/CMakeFiles/raytracing.dir
+/Users/lvxuanyi/Desktop/CSC317/computer-graphics-ray-tracing/build-release/CMakeFiles/hw2.dir
+/Users/lvxuanyi/Desktop/CSC317/computer-graphics-ray-tracing/build-release/CMakeFiles/edit_cache.dir
+/Users/lvxuanyi/Desktop/CSC317/computer-graphics-ray-tracing/build-release/CMakeFiles/rebuild_cache.dir

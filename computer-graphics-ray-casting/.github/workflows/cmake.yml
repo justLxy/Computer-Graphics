@@ -1,0 +1,105 @@
+name: CMake Cross-compilation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux → Unix Makefiles
+          - os: ubuntu-latest
+            generator: "Unix Makefiles"
+            build_type: Debug
+            apt: >-
+              cmake
+              build-essential
+          - os: ubuntu-latest
+            generator: "Unix Makefiles"
+            build_type: Release
+            apt: >-
+              cmake
+              build-essential
+
+          # macOS (Apple Silicon) → Unix Makefiles
+          - os: macos-14
+            generator: "Unix Makefiles"
+            build_type: Debug
+          - os: macos-14
+            generator: "Unix Makefiles"
+            build_type: Release
+
+          # macOS (Intel) → Unix Makefiles
+          - os: macos-13
+            generator: "Unix Makefiles"
+            build_type: Debug
+          - os: macos-13
+            generator: "Unix Makefiles"
+            build_type: Release
+
+          # Windows → Visual Studio solution (multi-config)
+          - os: windows-latest
+            generator: "Visual Studio 17 2022"
+            build_type: Debug
+          - os: windows-latest
+            generator: "Visual Studio 17 2022"
+            build_type: Release
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # pull submodules too
+          fetch-depth: 0   
+
+      - name: Install packages (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.apt }}
+
+      - name: Configure
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cmake -S . -B build -G "${{ matrix.generator }}" -A x64
+          else
+            cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          fi
+
+      - name: Build
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cmake --build build --config ${{ matrix.build_type }} --parallel
+          else
+            cmake --build build --parallel
+          fi
+
+      - name: Upload binaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.build_type }}
+          path: |
+            build/**/*.exe
+            build/**/raycasting
+
+      - name: Run binary (smoke)
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # Visual Studio generator places exe under build/<Config>/
+            exe="build/${{ matrix.build_type }}/raycasting.exe"
+            "$exe"
+          else
+            # Unix Makefiles: exe at build/<targetname>
+            ./build/raycasting
+          fi
+
+
