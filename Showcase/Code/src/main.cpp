@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <dirent.h>
 #include <unordered_map>
+#include <algorithm>
 #include "cg_math.h"
 #include "image.h"
 #include "camera.h"
@@ -23,9 +24,27 @@ static void ensure_dir(const char* path){
 #endif
 }
 
-static Vec3 sky(const Vec3& d){
+static Vec3 sky_day_night(const Vec3& d, double night_factor){
+	// Blend between daytime gradient and a deep blue‑purple night gradient with stars
 	double t = 0.5*(d.y+1.0);
-	return (1.0-t)*Vec3{0.9,0.85,0.8} + t*Vec3{0.6,0.75,0.95};
+	Vec3 day = (1.0-t)*Vec3{0.9,0.85,0.8} + t*Vec3{0.6,0.75,0.95};
+	// Night gradient (by elevation)
+	double v = std::min(1.0, std::max(0.0, (d.y*0.5 + 0.5)));
+	Vec3 top = {0.08, 0.10, 0.22};
+	Vec3 mid = {0.12, 0.14, 0.30};
+	Vec3 bot = {0.20, 0.18, 0.32};
+	Vec3 nightGrad = (v<0.5) ? (top*(1.0 - v*2.0) + mid*(v*2.0)) : (mid*(1.0 - (v-0.5)*2.0) + bot*((v-0.5)*2.0));
+	// Stars via hashed spherical coords
+	auto hash13 = [](double x, double y, double z)->double{
+		double s = std::sin(x*12.9898 + y*78.233 + z*37.719);
+		double f = s*43758.5453;
+		return f - std::floor(f);
+	};
+	double h = hash13(d.x, d.y, d.z);
+	double star = (h > 0.995) ? ((h - 0.995) * 200.0) : 0.0; // sparse
+	Vec3 stars = Vec3{0.8,0.85,1.0} * star;
+	Vec3 night = clamp01(nightGrad + stars);
+	return day*(1.0 - night_factor) + night*night_factor;
 }
 
 static bool file_exists(const char* p){
@@ -264,6 +283,7 @@ int main(int argc, char** argv){
 		}
 		scene.emissive_boost = boost;
 	}
+	// No window lights - rely on moonlight to illuminate the scene at night
 	// Shading tunables
 	scene.exposure = env_double("EXPOSURE", 1.35);
 	scene.specular_strength = env_double("SPECULAR_STRENGTH", 0.05);  // Lower specular for matte wood
@@ -453,21 +473,39 @@ int main(int argc, char** argv){
 	const double cloud_wobble_amp = env_double("CLOUD_WOBBLE_AMP_V", 0.02);
 	const double cloud_wobble_freq = env_double("CLOUD_WOBBLE_FREQ", 0.2);
 
+	// Accumulated effective spin time (integrates speed scaling so blades don't "rewind")
+	double accumulated_spin_time = 0.0;
+
 	for(int f=0; f<total_frames; ++f){
 		Image img(W,H);
 		img.fill({0,0,0});
 
-		double t = (double)f / (double)total_frames;
+		double t = (double)f / std::max(1.0, (double)(total_frames - 1));
 		double time_sec = (double)f / std::max(1.0, fps);
 		// animate emissive UV offset (cloud drift)
 		scene.emissive_uv_offset = {
 			cloud_spd_u * time_sec,
 			cloud_spd_v * time_sec + cloud_wobble_amp * std::sin(2.0*PI*cloud_wobble_freq*time_sec)
 		};
+		// Day -> Night blend factor across [0.5 .. 0.9]
+		auto smoothstep01 = [](double a, double b, double x)->double{
+			double tt = (x - a) / std::max(1e-9, (b - a));
+			tt = std::min(1.0, std::max(0.0, tt));
+			return tt*tt*(3.0 - 2.0*tt);
+		};
+		const double night_factor = smoothstep01(0.5, 0.9, t);
+		scene.night_factor = night_factor;
+		// Spin weight: 1 at day, 0 at night; integrated to avoid snapping/rewind
+		const double dt = 1.0 / std::max(1.0, fps);
+		double spin_weight = 1.0 - night_factor;
+		if(spin_weight < 0.0) spin_weight = 0.0;
+		if(spin_weight > 1.0) spin_weight = 1.0;
+		accumulated_spin_time += dt * spin_weight;
 		// Rebuild animated geometry for this frame (rotate windmill blades)
 		if(wind_enable && !wind_groups.empty()){
 			scene.mesh.triangles = base_mesh.triangles;
-			const double theta = theta0 + (2.0*PI * (wind_rpm/60.0)) * ( (double)f / std::max(1.0, fps) );
+			// Use accumulated_spin_time so rotation smoothly slows and fully stops at night
+			const double theta = theta0 + (2.0*PI * (wind_rpm/60.0)) * accumulated_spin_time;
 			for(const auto& g : wind_groups){
 				const Vec3 axis_use = axis_auto ? g.axis : wind_axis;
 				for(int ti : g.tri_indices){
@@ -509,40 +547,67 @@ int main(int argc, char** argv){
 		//  SUN_FOLLOW_CAMERA=0  to use fixed azimuth/elevation below
 		//  SUN_OFFSET_YAW_DEG / SUN_OFFSET_PITCH_DEG to nudge relative to camera
 		//  SUN_INTENSITY, SUN_AZIMUTH_DEG, SUN_ELEV_DEG for fixed mode
-		const double sunIntensity = env_double("SUN_INTENSITY", 4.0);
+		const double sunIntensityBase = env_double("SUN_INTENSITY", 4.0);
 		const bool followCam = env_double("SUN_FOLLOW_CAMERA", 1.0) > 0.5;
-		Vec3 sunDir;
+		// Determine base azimuth for the sun
+		double baseAz = 0.0; // radians
 		if(sun_lock_at_start){
-			sunDir = fixed_sun_dir;
+			baseAz = std::atan2(fixed_sun_dir.z, fixed_sun_dir.x);
 		}else if(followCam){
-			// Build camera basis
+			// Use current camera orientation plus offsets to choose azimuth (yaw), but drive elevation below
 			const Vec3 camF = normalize(target - camPos);
-			Vec3 camR = cross(camF, Vec3{0,1,0});
-			if(length(camR) < 1e-8) camR = {1,0,0};
-			camR = normalize(camR);
+			Vec3 camR = cross(camF, Vec3{0,1,0}); if(length(camR) < 1e-8) camR = {1,0,0}; camR = normalize(camR);
 			const Vec3 camU = normalize(cross(camR, camF));
 			const double yawDeg   = env_double("SUN_OFFSET_YAW_DEG", 0.0);
-			const double pitchDeg = env_double("SUN_OFFSET_PITCH_DEG", -8.0); // a bit above, looking down
+			const double pitchDeg = env_double("SUN_OFFSET_PITCH_DEG", -8.0);
 			const double yaw = yawDeg * PI / 180.0;
 			const double pitch = pitchDeg * PI / 180.0;
-			// Rotate forward by yaw around camU and by pitch around camR-equivalent frame
 			const double cp = std::cos(pitch), sp = std::sin(pitch);
 			const double cy = std::cos(yaw),   sy = std::sin(yaw);
-			// Local-frame combination (this is the light ray direction)
 			Vec3 dirLocal = camF * (cp*cy) + camR * (cp*sy) + camU * (sp);
-			// shade() uses L = -sun.dir, so to light the front (N roughly -camF),
-			// we set sun.dir ≈ camF (i.e., along camera forward).
-			sunDir = normalize(dirLocal);
+			baseAz = std::atan2(dirLocal.z, dirLocal.x);
 		}else{
-			const double sunAzDeg = env_double("SUN_AZIMUTH_DEG", -30.0);
-			const double sunElDeg = env_double("SUN_ELEV_DEG", 32.0);
-			const double sunAz = sunAzDeg * PI / 180.0;
-			const double sunEl = sunElDeg * PI / 180.0;
-			// y is negative because shade() uses L = -sun.dir
-			sunDir = normalize(Vec3(std::cos(sunAz)*std::cos(sunEl), -std::sin(sunEl), std::sin(sunAz)*std::cos(sunEl)));
+			baseAz = env_double("SUN_AZIMUTH_DEG", -30.0) * PI / 180.0;
 		}
+		// Smoothly lower the sun and raise the moon across night_factor
+		const double sunElDayDeg    = env_double("SUN_ELEV_DEG", 32.0);
+		const double sunSetDeg      = env_double("SUN_SET_ELEV_DEG", -6.0);     // below horizon at night
+		const double moonElDayDeg   = env_double("MOON_ELEV_DAY_DEG", -10.0);   // below horizon at day
+		const double moonElNightDeg = env_double("MOON_ELEV_NIGHT_DEG", 25.0);  // above horizon at night
+		const double sunElDeg  = sunElDayDeg*(1.0 - night_factor) + sunSetDeg*night_factor;
+		const double moonElDeg = moonElDayDeg*(1.0 - night_factor) + moonElNightDeg*night_factor;
+		const double sunEl  = sunElDeg * PI / 180.0;
+		const double moonEl = moonElDeg * PI / 180.0;
+		const double sunAz  = baseAz;
+		const double moonAz = sunAz; // same direction as sun (keeps lighting on the building)
+		// y is negative because shade() uses L = -dir
+		Vec3 sunDir  = normalize(Vec3(std::cos(sunAz)*std::cos(sunEl),  -std::sin(sunEl),  std::sin(sunAz)*std::cos(sunEl)));
+		Vec3 moonDir = normalize(Vec3(std::cos(moonAz)*std::cos(moonEl),-std::sin(moonEl), std::sin(moonAz)*std::cos(moonEl)));
 		scene.sun.dir = sunDir;
-		scene.sun.intensity = sunIntensity;
+		// Warm the color as it sets
+		Vec3 sunDayCol = {1.0, 0.98, 0.96};
+		Vec3 sunDuskCol = {1.0, 0.75, 0.45};
+		scene.sun.color = sunDayCol*(1.0 - night_factor) + sunDuskCol*night_factor;
+		scene.sun.intensity = sunIntensityBase * (1.0 - night_factor);
+		// Moonlight (bright and cool, main light source at night)
+		scene.enable_moon = (night_factor > 0.0);
+		scene.moon.color = {0.65, 0.75, 0.95};  // cool blue-white
+		// Moon rises as night comes in; opposite azimuth to the sun
+		scene.moon.dir = moonDir;
+		scene.moon.intensity = 2.8 * night_factor;  // moderate moon brightness
+		// Environment fills and exposure crossfade
+		scene.ambient = {
+			0.28*(1.0 - night_factor) + 0.08*night_factor,
+			0.28*(1.0 - night_factor) + 0.09*night_factor,
+			0.28*(1.0 - night_factor) + 0.12*night_factor
+		};
+		scene.sky_fill = 0.22*(1.0 - night_factor) + 0.25*night_factor;  // moderate sky fill at night
+		scene.sky_tint = {
+			0.6*(1.0 - night_factor) + 0.40*night_factor,
+			0.75*(1.0 - night_factor) + 0.50*night_factor,
+			0.95*(1.0 - night_factor) + 0.70*night_factor
+		};
+		scene.exposure = 1.35*(1.0 - night_factor) + 1.55*night_factor;  // moderate exposure for night
 
 		// Simple 1 spp
 		{
@@ -563,7 +628,7 @@ int main(int argc, char** argv){
 								Vec3 color = scene.shade(r, hitIdx, nHit, uvHit, b0,b1,b2);
 								img.set(x,y,color);
 							}else{
-								img.set(x,y, sky(r.dir));
+								img.set(x,y, sky_day_night(r.dir, night_factor));
 							}
 						}
 					}
