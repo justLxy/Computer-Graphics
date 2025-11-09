@@ -578,8 +578,11 @@ int main(int argc, char** argv){
 		const double moonElDeg = moonElDayDeg*(1.0 - night_factor) + moonElNightDeg*night_factor;
 		const double sunEl  = sunElDeg * PI / 180.0;
 		const double moonEl = moonElDeg * PI / 180.0;
-		const double sunAz  = baseAz;
-		const double moonAz = sunAz; // same direction as sun (keeps lighting on the building)
+		// Place sun slightly to the left, moon to the right (relative to camera/base azimuth)
+		const double sepDeg = env_double("DUAL_LIGHT_SEP_DEG", 16.0); // angular separation
+		const double sepRad = sepDeg * PI / 180.0;
+		const double sunAz  = baseAz - sepRad; // left
+		const double moonAz = baseAz + sepRad; // right
 		// y is negative because shade() uses L = -dir
 		Vec3 sunDir  = normalize(Vec3(std::cos(sunAz)*std::cos(sunEl),  -std::sin(sunEl),  std::sin(sunAz)*std::cos(sunEl)));
 		Vec3 moonDir = normalize(Vec3(std::cos(moonAz)*std::cos(moonEl),-std::sin(moonEl), std::sin(moonAz)*std::cos(moonEl)));

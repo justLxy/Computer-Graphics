@@ -174,10 +174,24 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 		}
 	};
 	// Sun (day, warming as it sets)
-	add_dir_light(sun);
-	// Moon (cool, faint directional)
+	// If sun and moon align (same direction), merge into a single key light to avoid double highlights
 	if(enable_moon){
-		add_dir_light(moon);
+		Vec3 sunLd = normalize(-sun.dir);
+		Vec3 moonLd = normalize(-moon.dir);
+		double align = dot(sunLd, moonLd);
+		if(align > 0.999){
+			DirectionalLight key = sun;
+			// Fold both lights into one by summing their luma contributions
+			Vec3 lcol = sun.color * sun.intensity + moon.color * moon.intensity;
+			key.color = lcol;
+			key.intensity = 1.0; // lcol already encodes total intensity
+			add_dir_light(key);
+		}else{
+			add_dir_light(sun);
+			add_dir_light(moon);
+		}
+	}else{
+		add_dir_light(sun);
 	}
 	// Hemispheric skylight fill (brightens upward-facing surfaces)
 	if(sky_fill > 0.0){
