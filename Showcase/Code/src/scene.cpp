@@ -11,8 +11,8 @@ bool Scene::trace_shadow(const Vec3& p, const Vec3& lightDir) const{
 		// Ignore emissive/background materials when casting shadows so the sky plate
 		// does not receive or cast shadows.
 		const Triangle& tri = mesh.triangles[(size_t)hit];
-		if(!emissive_sky_mat_ids.empty() &&
-		   std::find(emissive_sky_mat_ids.begin(), emissive_sky_mat_ids.end(), tri.material_id) != emissive_sky_mat_ids.end()){
+		if(!emissive_mat_ids.empty() &&
+		   std::find(emissive_mat_ids.begin(), emissive_mat_ids.end(), tri.material_id) != emissive_mat_ids.end()){
 			// Advance past this triangle and continue searching
 			sr.origin = sr.origin + sr.dir * (t + 1e-4);
 			continue;
@@ -35,10 +35,8 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 			kd = mesh.textures[(size_t)tex_id].sample(uv);
 		}
 	}
-	const bool isSkyEmissive = !emissive_sky_mat_ids.empty() &&
-		(std::find(emissive_sky_mat_ids.begin(), emissive_sky_mat_ids.end(), t.material_id) != emissive_sky_mat_ids.end());
-	const bool isWindowEmissive = !emissive_window_mat_ids.empty() &&
-		(std::find(emissive_window_mat_ids.begin(), emissive_window_mat_ids.end(), t.material_id) != emissive_window_mat_ids.end());
+	const bool isEmissive = !emissive_mat_ids.empty() &&
+		(std::find(emissive_mat_ids.begin(), emissive_mat_ids.end(), t.material_id) != emissive_mat_ids.end());
 	// Lighting
 	Vec3 L = normalize(-sun.dir);
 	Vec3 V = normalize(-ray.dir);
@@ -47,7 +45,7 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 	Vec3 col = ambient * kd;
 	// If this is a background/emissive plate (e.g., sky board), render it unlit and
 	// ignore occluders to prevent scene silhouettes from appearing on the sky.
-	if(isSkyEmissive){
+	if(isEmissive){
 		// Scroll texture coordinates for emissive materials (e.g., drifting clouds)
 		if(tex_id>=0){
 			Vec2 uv2 = uv + emissive_uv_offset;
@@ -66,28 +64,6 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 			const double white = 11.2;
 			const double whiteScale = 1.0 / uncharted2(white);
 			Vec3 x = e * std::max(0.0, exposure * emissive_exposure_mul);
-			Vec3 mapped = {
-				uncharted2(x.x) * whiteScale,
-				uncharted2(x.y) * whiteScale,
-				uncharted2(x.z) * whiteScale
-			};
-			return clamp01(mapped);
-		}
-	}
-	// If window/light emissive material, render self-illumination (no shadowing)
-	if(isWindowEmissive){
-		const double base = 0.7;
-		Vec3 e = kd * (base + std::max(0.0, window_emissive_boost)) * std::max(0.0, window_emissive_gain);
-		if(window_emissive_linear){
-			return clamp01(e);
-		}else{
-			auto uncharted2 = [](double x)->double{
-				const double A=0.15, B=0.50, C=0.10, D=0.20, E=0.02, F=0.30;
-				return ((x*(A*x + C*B) + D*E) / (x*(A*x + B) + D*F)) - E/F;
-			};
-			const double white = 11.2;
-			const double whiteScale = 1.0 / uncharted2(white);
-			Vec3 x = e * std::max(0.0, exposure * window_emissive_exposure_mul);
 			Vec3 mapped = {
 				uncharted2(x.x) * whiteScale,
 				uncharted2(x.y) * whiteScale,
@@ -117,8 +93,8 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 		col += (kd * sky_tint) * (sky_fill * hemi);
 	}
 	// Emissive boost for designated materials (e.g., background sky board)
-	if(!emissive_sky_mat_ids.empty()){
-		if(std::find(emissive_sky_mat_ids.begin(), emissive_sky_mat_ids.end(), t.material_id) != emissive_sky_mat_ids.end()){
+	if(!emissive_mat_ids.empty()){
+		if(std::find(emissive_mat_ids.begin(), emissive_mat_ids.end(), t.material_id) != emissive_mat_ids.end()){
 			col += kd * std::max(0.0, emissive_boost);
 		}
 	}

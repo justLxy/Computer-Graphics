@@ -78,14 +78,6 @@ static std::string env_string(const char* key, const std::string& defv){
 	return s ? std::string(s) : defv;
 }
 
-static inline double clamp01(double x){ return x<0.0?0.0:(x>1.0?1.0:x); }
-static inline double lerp(double a, double b, double t){ return a + (b - a) * t; }
-static inline Vec3 lerp3(const Vec3& a, const Vec3& b, double t){ return { lerp(a.x,b.x,t), lerp(a.y,b.y,t), lerp(a.z,b.z,t) }; }
-static inline double smoothstep(double a, double b, double x){
-	double t = clamp01((x - a) / (b - a));
-	return t*t*(3.0 - 2.0*t);
-}
-
 static std::string lower_str(std::string s){
 	for(size_t i=0;i<s.size();++i){
 		unsigned char c = (unsigned char)s[i];
@@ -260,8 +252,7 @@ int main(int argc, char** argv){
 			}
 		}
 		if(!matched_ids.empty()){
-			scene.emissive_sky_mat_ids = matched_ids;
-			scene.emissive_mat_ids = matched_ids; // keep legacy field in sync
+			scene.emissive_mat_ids = std::move(matched_ids);
 		}else{
 			// Fallback: use largest-triangle materials
 			std::vector<int> ids;
@@ -269,31 +260,9 @@ int main(int argc, char** argv){
 				int mid = triAreas[i].second;
 				if(mid>=0 && std::find(ids.begin(), ids.end(), mid)==ids.end()) ids.push_back(mid);
 			}
-			scene.emissive_sky_mat_ids = ids;
-			scene.emissive_mat_ids = ids;
+			scene.emissive_mat_ids = std::move(ids);
 		}
 		scene.emissive_boost = boost;
-	}
-	// Detect window/light emissive materials by texture name match
-	{
-		const std::string w_match = env_string("WINDOW_EMISSIVE_TEX_MATCH", "window");
-		std::vector<int> ids;
-		if(!w_match.empty()){
-			for(size_t mi=0; mi<scene.mesh.materials.size(); ++mi){
-				const Material& m = scene.mesh.materials[mi];
-				if(m.tex_id>=0 && m.tex_id < (int)scene.mesh.textures.size()){
-					const std::string& p = scene.mesh.textures[(size_t)m.tex_id].path;
-					if(contains_ci(p, w_match)){
-						ids.push_back((int)mi);
-					}
-				}
-			}
-		}
-		scene.emissive_window_mat_ids = std::move(ids);
-		scene.window_emissive_boost = env_double("WINDOW_EMISSIVE_BOOST", 0.0);
-		scene.window_emissive_gain = env_double("WINDOW_EMISSIVE_GAIN_DAY", 0.0);
-		scene.window_emissive_exposure_mul = env_double("WINDOW_EMISSIVE_EXPOSURE_MUL", 1.0);
-		scene.window_emissive_linear = env_double("WINDOW_EMISSIVE_LINEAR", 0.0) > 0.5;
 	}
 	// Shading tunables
 	scene.exposure = env_double("EXPOSURE", 1.35);
@@ -540,38 +509,7 @@ int main(int argc, char** argv){
 		//  SUN_FOLLOW_CAMERA=0  to use fixed azimuth/elevation below
 		//  SUN_OFFSET_YAW_DEG / SUN_OFFSET_PITCH_DEG to nudge relative to camera
 		//  SUN_INTENSITY, SUN_AZIMUTH_DEG, SUN_ELEV_DEG for fixed mode
-		const double sunIntensityDay = env_double("SUN_INTENSITY", 4.0);
-		const double sunIntensityNight = env_double("SUN_INTENSITY_NIGHT", 0.15);
-		// Time-of-day factor: 0=day, 1=night (linger in day, transition late)
-		const double day_to_night = smoothstep(env_double("DN_START", 0.40), env_double("DN_END", 0.90), t);
-		// Animate sky/ambient/exposure and emissives
-		{
-			const double ambDay = env_double("AMBIENT", 0.28);
-			const double ambNight = env_double("AMBIENT_NIGHT", 0.12);
-			scene.ambient = { lerp(ambDay, ambNight, day_to_night),
-			                  lerp(ambDay, ambNight, day_to_night),
-			                  lerp(ambDay, ambNight, day_to_night) };
-			const double skyFillDay = env_double("SKY_FILL", 0.22);
-			const double skyFillNight = env_double("SKY_FILL_NIGHT", 0.08);
-			scene.sky_fill = lerp(skyFillDay, skyFillNight, day_to_night);
-			const Vec3 tintDay = { env_double("SKY_TINT_R", 0.6), env_double("SKY_TINT_G", 0.75), env_double("SKY_TINT_B", 0.95) };
-			const Vec3 tintNight = { env_double("SKY_TINT_NIGHT_R", 0.18), env_double("SKY_TINT_NIGHT_G", 0.20), env_double("SKY_TINT_NIGHT_B", 0.55) };
-			scene.sky_tint = lerp3(tintDay, tintNight, day_to_night);
-			const double expDay = env_double("EXPOSURE", 1.35);
-			const double expNight = env_double("EXPOSURE_NIGHT", 1.25);
-			scene.exposure = lerp(expDay, expNight, day_to_night);
-			// Emissive sky dims into night to let background gradient show
-			const double egDay = env_double("EMISSIVE_GAIN", 1.8);
-			const double egNight = env_double("EMISSIVE_GAIN_NIGHT", 0.6);
-			scene.emissive_gain = lerp(egDay, egNight, day_to_night);
-			const double eemDay = env_double("EMISSIVE_EXPOSURE_MUL", 1.6);
-			const double eemNight = env_double("EMISSIVE_EXPOSURE_MUL_NIGHT", 1.2);
-			scene.emissive_exposure_mul = lerp(eemDay, eemNight, day_to_night);
-			// Windows glow up at night
-			const double wgDay = env_double("WINDOW_EMISSIVE_GAIN_DAY", 0.0);
-			const double wgNight = env_double("WINDOW_EMISSIVE_GAIN_NIGHT", 3.0);
-			scene.window_emissive_gain = lerp(wgDay, wgNight, day_to_night);
-		}
+		const double sunIntensity = env_double("SUN_INTENSITY", 4.0);
 		const bool followCam = env_double("SUN_FOLLOW_CAMERA", 1.0) > 0.5;
 		Vec3 sunDir;
 		if(sun_lock_at_start){
@@ -604,11 +542,7 @@ int main(int argc, char** argv){
 			sunDir = normalize(Vec3(std::cos(sunAz)*std::cos(sunEl), -std::sin(sunEl), std::sin(sunAz)*std::cos(sunEl)));
 		}
 		scene.sun.dir = sunDir;
-		// Animate sun color from warm daylight to cool moonlight
-		const Vec3 sunDayCol = { env_double("SUN_DAY_R", 1.0), env_double("SUN_DAY_G", 0.95), env_double("SUN_DAY_B", 0.9) };
-		const Vec3 sunNightCol = { env_double("SUN_NIGHT_R", 0.6), env_double("SUN_NIGHT_G", 0.7), env_double("SUN_NIGHT_B", 1.0) };
-		scene.sun.color = lerp3(sunDayCol, sunNightCol, day_to_night);
-		scene.sun.intensity = lerp(sunIntensityDay, sunIntensityNight, day_to_night);
+		scene.sun.intensity = sunIntensity;
 
 		// Simple 1 spp
 		{
@@ -629,18 +563,7 @@ int main(int argc, char** argv){
 								Vec3 color = scene.shade(r, hitIdx, nHit, uvHit, b0,b1,b2);
 								img.set(x,y,color);
 							}else{
-								// Background gradient also transitions day->night
-								auto sky_fn = [&](const Vec3& d)->Vec3{
-									const Vec3 lowDay  = { env_double("SKY_LOW_DAY_R", 0.9),  env_double("SKY_LOW_DAY_G", 0.85), env_double("SKY_LOW_DAY_B", 0.8) };
-									const Vec3 highDay = { env_double("SKY_HIGH_DAY_R",0.6),  env_double("SKY_HIGH_DAY_G",0.75), env_double("SKY_HIGH_DAY_B",0.95) };
-									const Vec3 lowNight  = { env_double("SKY_LOW_NIGHT_R", 0.02), env_double("SKY_LOW_NIGHT_G", 0.03), env_double("SKY_LOW_NIGHT_B", 0.08) };
-									const Vec3 highNight = { env_double("SKY_HIGH_NIGHT_R",0.15), env_double("SKY_HIGH_NIGHT_G",0.07), env_double("SKY_HIGH_NIGHT_B",0.28) };
-									const Vec3 low = lerp3(lowDay, lowNight, day_to_night);
-									const Vec3 high = lerp3(highDay, highNight, day_to_night);
-									double tt = 0.5*(d.y+1.0);
-									return (1.0-tt)*low + tt*high;
-								};
-								img.set(x,y, sky_fn(r.dir));
+								img.set(x,y, sky(r.dir));
 							}
 						}
 					}

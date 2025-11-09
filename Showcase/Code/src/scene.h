@@ -18,9 +18,6 @@ struct Scene {
 	Vec3 ambient = {0.15,0.15,0.18};
 	// Materials that should appear brighter regardless of light (e.g., painted sky plane)
 	std::vector<int> emissive_mat_ids;
-	// Separate emissive sets for environment sky board and window lights
-	std::vector<int> emissive_sky_mat_ids;
-	std::vector<int> emissive_window_mat_ids;
 	double emissive_boost = 0.0; // added to color as kd*boost (0 disables)
 	// UV offset for emissive materials (e.g., scrolling clouds on background board)
 	Vec2 emissive_uv_offset = {0.0, 0.0};
@@ -28,11 +25,6 @@ struct Scene {
 	double emissive_gain = 1.0;            // multiply emissive kd
 	double emissive_exposure_mul = 1.0;    // extra exposure only for emissive path
 	bool emissive_linear = false;          // if true, bypass filmic tonemap for emissive
-	// Separate controls for window lights/glows
-	double window_emissive_boost = 0.0;
-	double window_emissive_gain = 0.0;
-	double window_emissive_exposure_mul = 1.0;
-	bool window_emissive_linear = false;
 	// Global shading controls
 	double exposure = 1.8;          // multiplies color before tone mapping
 	double specular_strength = 0.5; // multiplier for specular highlight
