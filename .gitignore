@@ -16,6 +16,10 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 
+# Rendered frames
+Showcase/Piece/frames/
+*.ppm
+
 # macOS
 .DS_Store
 
