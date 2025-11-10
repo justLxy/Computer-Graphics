@@ -18,8 +18,8 @@ void forward_kinematics(
     const Eigen::Affine3d  rTi_inv = rTi.inverse();
     if(parent < 0)
     {
-      // Root has no parent: identity global transform.
-      T[i] = Eigen::Affine3d::Identity();
+      // Root: no parent transform, but still apply own relative rotation
+      T[i] = rTi * R_rel * rTi_inv;
     }else
     {
       // Apply parent's pose, then change of coordinates to canonical frame,

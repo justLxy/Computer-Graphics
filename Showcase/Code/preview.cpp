@@ -8,6 +8,11 @@
 #include <cmath>
 #include <cstring>
 
+// Silence macOS OpenGL deprecation warnings
+#if defined(__APPLE__)
+#define GL_SILENCE_DEPRECATION 1
+#endif
+
 // GLFW + OpenGL
 #include <GLFW/glfw3.h>
 
@@ -222,6 +227,7 @@ void render_frame(){
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+    (void)scancode;
     if(action != GLFW_PRESS && action != GLFW_REPEAT) return;
     
     // Much larger steps for easier control
@@ -512,7 +518,7 @@ int main(int argc, char** argv){
             g_need_render = false;
             
             // Upload to OpenGL texture
-            std::vector<unsigned char> pixels(g_width * g_height * 3);
+            pixels.resize(g_width * g_height * 3);
             for(int y=0; y<g_height; ++y){
                 for(int x=0; x<g_width; ++x){
                     Vec3 c = g_image->get(x, y);

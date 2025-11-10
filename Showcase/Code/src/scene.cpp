@@ -38,10 +38,8 @@ Vec3 Scene::shade(const Ray& ray, int triIdx, const Vec3& n, const Vec2& uv, dou
 	const bool isEmissive = !emissive_mat_ids.empty() &&
 		(std::find(emissive_mat_ids.begin(), emissive_mat_ids.end(), t.material_id) != emissive_mat_ids.end());
 	// Lighting
-	Vec3 L = normalize(-sun.dir);
 	Vec3 V = normalize(-ray.dir);
 	Vec3 N = normalize(n);
-	Vec3 light_col = sun.color * sun.intensity;
 	Vec3 col = ambient * kd;
 	// If this is a background/emissive plate (e.g., sky board), render it unlit and
 	// ignore occluders to prevent scene silhouettes from appearing on the sky.
