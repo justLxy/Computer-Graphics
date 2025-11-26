@@ -14,7 +14,7 @@ This project is an 8-second ray-traced animation of a pastoral scene featuring t
 
 **Build** (macOS, requires CMake ≥ 3.20):
 ```bash
-cd "Showcase/Code"
+cd Code
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j
